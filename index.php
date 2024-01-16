@@ -11,7 +11,7 @@ $api = new Introvert\ApiClient();
 $api->getConfig()->setHost('https://api.s1.yadrocrm.ru/tmp');
 $api->getConfig()->setApiKey('key', '23bc075b710da43f0ffb50ff9e889aed ');
 
-// Main function,
+// Main function, returns map of leads by date: value
 function getLeadsByStatusAndDate($customFieldId, $statusArray, $api): array
 {
 
@@ -35,7 +35,7 @@ function getLeadsByStatusAndDate($customFieldId, $statusArray, $api): array
             // else set custom_fields to contain required field only
             $lead["custom_fields"] = $fields;
             // only date value
-            $dateValue = strtotime($lead["custom_fields"][0]["values"][0]["value"]);
+            $dateValue = strtotime('+1 day', strtotime($lead["custom_fields"][0]["values"][0]["value"])); // timestamp
             // count leads by date with associative array
             if (isset($leadsByDate[$dateValue])) {
                 $leadsByDate[$dateValue] += 1;
