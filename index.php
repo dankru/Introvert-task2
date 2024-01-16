@@ -1,5 +1,8 @@
 <?php
 
+// This scripts gets all leads with transfered statuses from today to 30 days in the future and returns json object,
+// containing the amount of leads for each timestamp date, date as key, leads count as value
+
 require_once(__DIR__ . '/vendor/autoload.php');
 
 $apiKey = "23bc075b710da43f0ffb50ff9e889aed";
@@ -8,18 +11,24 @@ $api = new Introvert\ApiClient();
 $api->getConfig()->setHost('https://api.s1.yadrocrm.ru/tmp');
 $api->getConfig()->setApiKey('key', '23bc075b710da43f0ffb50ff9e889aed ');
 
-function getLeadsByStatusAndDate($statusArray, $dateToday, $dateOffset, $api): array
+// Main function,
+function getLeadsByStatusAndDate($customFieldId, $statusArray, $api): array
 {
+
+    $dateToday = new DateTime(); // Y-m-d
+    $dateOffset = new DateTime(); // Y-m-d
+    $dateOffset->add(new DateInterval('P30D')); // Today + 30 days
+
 
     $leadsByDate = [];
     $leads = getAllLeads($statusArray, $api);
 
     foreach ($leads["result"] as $lead) {
         $fields = $lead["custom_fields"];
-        // filter leads by date
-        $fields = array_filter($fields, fn($field) => $field["id"] === 1523113 && $field["values"][0]["value"] > $dateToday->format('Y-m-d') . " 00:00:00"
+        // filter leads by date from chosen field
+        $fields = array_filter($fields, fn($field) => $field["id"] === $customFieldId && $field["values"][0]["value"] > $dateToday->format('Y-m-d') . " 00:00:00"
         && $field["values"][0]["value"] < $dateOffset);
-        // if no fields by this date, continue
+        // if no fields with this date, continue
         if (count($fields) === 0) {
             continue;
         } else {
@@ -38,12 +47,14 @@ function getLeadsByStatusAndDate($statusArray, $dateToday, $dateOffset, $api): a
     return $leadsByDate;
 }
 
+// Get all leads in a loop
 function getAllLeads($statusArray, $api): array
 {
     $limit = 100;
     $offset = 0;
     $leads = [];
     do {
+        // user id hardcoded 8967010
         $leadsByPage = $api->lead->getAll(8967010, $statusArray, null, null, $limit, $offset);
         $leads = array_merge_recursive($leads, $leadsByPage);
         $count = count($leadsByPage["result"]);
@@ -52,9 +63,5 @@ function getAllLeads($statusArray, $api): array
     return $leads;
 }
 
-// custom field date_test_2 id = 1523113
-$dateToday = new DateTime(); // Y-m-d
-$dateOffset = new DateTime(); // Y-m-d
-$dateOffset->add(new DateInterval('P30D')); // Today + 30 days
 
-echo json_encode(getLeadsByStatusAndDate([142, 143], $dateToday, $dateOffset, $api));
+echo json_encode(getLeadsByStatusAndDate(1523113, [142, 143], $api));
