@@ -18,6 +18,7 @@
     }
   ],
   "require": {
-    "mahatmaguru/intr-sdk-test": "*@dev"
+    "mahatmaguru/intr-sdk-test": "*@dev",
+    "ext-json": "*"
   }
 }
